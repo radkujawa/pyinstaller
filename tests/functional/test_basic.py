@@ -186,6 +186,10 @@ def test_helloworld(pyi_builder):
     pyi_builder.test_source("print('Hello Python!')")
 
 
+def test_utf8_mode(pyi_builder):
+    pyi_builder.test_source("import sys\nassert sys.flags.utf8_mode == 1")
+
+
 def test_module__file__attribute(pyi_builder):
     pyi_builder.test_script('pyi_module__file__attribute.py')
 

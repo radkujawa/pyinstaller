@@ -37,6 +37,8 @@
 int
 pyi_main(int argc, char * argv[])
 {
+    pyi_unsetenv("PYTHONPATH");
+    pyi_setenv("PYTHONUTF8", "1");
     /*  archive_status contain status information of the main process. */
     ARCHIVE_STATUS *archive_status = NULL;
     char executable[PATH_MAX];
