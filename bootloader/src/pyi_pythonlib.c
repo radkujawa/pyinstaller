@@ -193,7 +193,7 @@ pyi_pylib_set_runtime_opts(ARCHIVE_STATUS *status)
     /* Do not try to find any packages in user's site directory. */
     *PI_Py_NoUserSiteDirectory = 1;
     /* This flag ensures PYTHONPATH and PYTHONHOME are ignored by Python. */
-    *PI_Py_IgnoreEnvironmentFlag = 1;
+    *PI_Py_IgnoreEnvironmentFlag = 0;
     /* Disalbe verbose imports by default. */
     *PI_Py_VerboseFlag = 0;
 
