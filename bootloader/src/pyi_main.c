@@ -34,11 +34,58 @@
 #include "pyi_launch.h"
 #include "pyi_win32_utils.h"
 
+#ifdef _WIN32
+
+#define strncasecmp _strnicmp
+
+char* strndup( char* s, size_t n ) {
+    char* c = malloc( n + 1 );
+    strncpy( c, s, n );
+    c[n] = 0;
+    return ( c );
+}
+
+#endif
+
+extern char** environ;
+
+void sanitize_env( void ) {
+    char** pythonEnvVars = NULL;
+    char pythonVarNamePfx[] = "python";
+    int pythonEnvVarCount = 0;
+    int idx = 0;
+    getenv( "PATH" ) == NULL; /* This will initialize `environ` variable on Windows. */
+    for ( char** e = environ; *e; ++ e ) {
+        if ( strncasecmp( *e, pythonVarNamePfx, sizeof ( pythonVarNamePfx ) - 1 ) == 0 ) {
+            ++ pythonEnvVarCount;
+        }
+    }
+    pythonEnvVars = (char**)calloc( pythonEnvVarCount, sizeof ( char* ) );
+    for ( char** e = environ; *e; ++ e ) {
+        size_t len = 0;
+        char* eqPos = NULL;
+        if ( strncasecmp( *e, pythonVarNamePfx, sizeof ( pythonVarNamePfx ) - 1 ) != 0 ) {
+            continue;
+        }
+        len = strlen( *e );
+        eqPos = strchr( *e, '=' );
+        if ( eqPos ) {
+            len = eqPos - *e;
+        }
+        pythonEnvVars[idx] = strndup( *e, len );
+        ++ idx;
+    }
+    for ( int i = 0; i < pythonEnvVarCount; ++ i ) {
+        pyi_unsetenv( pythonEnvVars[i] );
+        free( pythonEnvVars[i] );
+    }
+    free( pythonEnvVars );
+    return;
+}
+
 int
 pyi_main(int argc, char * argv[])
 {
-    pyi_unsetenv("PYTHONPATH");
-    pyi_setenv("PYTHONUTF8", "1");
     /*  archive_status contain status information of the main process. */
     ARCHIVE_STATUS *archive_status = NULL;
     char executable[PATH_MAX];
@@ -49,6 +96,9 @@ pyi_main(int argc, char * argv[])
     wchar_t * dllpath_w;
 
     int i = 0;
+
+    sanitize_env();
+    pyi_setenv("PYTHONUTF8", "1");
 
 #ifdef _MSC_VER
     /* Visual C runtime incorrectly buffers stderr */
