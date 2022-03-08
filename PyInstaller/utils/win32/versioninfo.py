@@ -13,10 +13,15 @@
 import struct
 
 # ::TODO:: #1920 revert to using pypi version
+
 import pefile
 
 from PyInstaller.compat import win32api
 
+
+from PyInstaller import log as logging
+
+logger = logging.getLogger(__name__)
 
 def pefile_check_control_flow_guard(filename):
     """
@@ -291,6 +296,8 @@ class FixedFileInfo:
         subtype=0x0,
         date=(0, 0)
     ):
+        logger.info(f"filevers: {filevers}")
+        logger.info(f"prodvers: {prodvers}")
         self.sig = 0xfeef04bd
         self.strucVersion = 0x10000
         self.fileVersionMS = (filevers[0] << 16) | (filevers[1] & 0xffff)
@@ -324,6 +331,24 @@ class FixedFileInfo:
         return i + 52
 
     def toRaw(self):
+        l = [self.sig,
+            self.strucVersion,
+            self.fileVersionMS,
+            self.fileVersionLS,
+            self.productVersionMS,
+            self.productVersionLS,
+            self.fileFlagsMask,
+            self.fileFlags,
+            self.fileOS,
+            self.fileType,
+            self.fileSubtype,
+            self.fileDateMS,
+            self.fileDateLS]
+        # with NamedTemporaryFile(delete=False) as tmpfile:
+        #     for x in l:
+        #         tmpfile.write(str(x))
+        for x in l:
+            logger.info(str(x))
         return struct.pack(
             '13L',
             self.sig,
